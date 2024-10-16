@@ -9,7 +9,7 @@ setup(
     install_requires=[
         'youtube-dl',
         'psutil',
-        'openai-whisper @ git+https://github.com/openai/whisper.git@main#egg=whisper'
+        'openai-whisper'
     ],
     description="Automatically generate and/or embed subtitles into your videos",
     entry_points={
