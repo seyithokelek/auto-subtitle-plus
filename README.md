@@ -27,7 +27,7 @@
 
 ## Installation
 
-To get started, you'll need Python 3.7 or newer. Install the binary by running the following command:
+To get started, you'll need Python >= 3.7 && <= 3.11.9. Install the binary by running the following command:
 
 ```bash
     pip install git+https://github.com/Sectumsempra82/auto-subtitle-plus.git
@@ -44,6 +44,10 @@ brew install ffmpeg
 
 # on Windows using Chocolatey (https://chocolatey.org/)
 choco install ffmpeg
+
+#you might also need python-ffmpeg
+
+pip3 install python-ffmpeg
 ```
 
 ## How to make it use your GPU for 3x faster generations
