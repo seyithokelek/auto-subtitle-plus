@@ -1,4 +1,4 @@
 dist
 .DS_Store
 *.egg-info
-auto_subtitle/__pycache__
+auto_subtitle_plus/__pycache__

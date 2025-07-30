@@ -1,249 +1,152 @@
-## Automatic subtitles for your videos
+# Auto Subtitle Plus (Enhanced Fork)
 
-    This repository uses `ffmpeg` and [OpenAI's Whisper](https://openai.com/blog/whisper) to automatically generate and overlay subtitles on any video.
-    Bigup to m1guelpf for releasing this tool
-    Kudos for all the improvements made by RapDoodle
+This project is a **clean and improved fork** of the original repository by [Sectumsempra82](https://github.com/Sectumsempra82/auto-subtitle-plus).  
+Goal: simplify usage, improve stability, and add **automatic translation**.
 
-## Why forking it 
+<p style="color:blue;">
 
-    Because it needed some fixes, installer, dependencies.... and I wanted also to make it more flexible
+Bu araç, videolarınız için otomatik altyazı oluşturabilir, altyazıları istediğiniz dile çevirebilir  
+veya hem orijinal hem de çevrilmiş altyazıyı (çift dil; örneğin türkçe-ingilizce altyazı) aynı anda üretebilir.
+</p>
 
-    The first iteration of this tool consistently failed generating spanish subtitles in movies that start with english songs,
 
-    even though all the movie is in spanish... this should ifx it by manually forcing the language in the parameters.
+---
 
-## Advantages of this version (so far)
+## What's New in This Version
+- **Automatic subtitle translation** (Google Translate backend)
+- **Disable translation** with `--translate-off`
+- **Target language** selection via `--translate-to tr|fr|...`
+- Batch translation & **multithreading** for speed
+- Clear, grouped CLI (Output, Language, Performance, Advanced)
+- **Stable Whisper** integration for robust transcription
+- Subtitled videos saved with `_subtitled.mp4`
+- Cleaner logs and small performance tweaks
 
-    - Can force subtitles to be generated in spanish
-    - Updated dependencies
-    - Fix audio out of sync issue
-    - Wildcard support for filenames
-    - Convert audio to subtitles (output `.srt` files)
-    - Option to pick a language instead of using language auto detection
-    - Extract audio from videos in parallel
-    - Disable `condition_on_previous_text` by default to avoid stucking in failure loop (especially for videos with long intervals between talks), with option `--enhance-consistency` to enable it.
-    - Many more new command options
-
+---
 
 ## Installation
-
-To get started, you'll need Python >= 3.7 && <= 3.11.9. Install the binary by running the following command:
+Supports Python **3.7 – 3.11**.
 
 ```bash
-    pip install git+https://github.com/Sectumsempra82/auto-subtitle-plus.git
+pip install -r requirements.txt
 ```
 
-You'll also need to install [`ffmpeg`](https://ffmpeg.org/), which is available from most package managers:
+Also install **ffmpeg**:
 
 ```bash
-# on Ubuntu or Debian
-sudo apt update && sudo apt install ffmpeg
-
-# on MacOS using Homebrew (https://brew.sh/)
+# Ubuntu/Debian
+sudo apt install ffmpeg
+# macOS (Homebrew)
 brew install ffmpeg
-
-# on Windows using Chocolatey (https://chocolatey.org/)
+# Windows (Chocolatey)
 choco install ffmpeg
-
-#you might also need python-ffmpeg
-
-pip3 install python-ffmpeg
 ```
 
-## How to make it use your GPU for 3x faster generations
+---
 
-Follow thsese instructions only if your gpu is powerful enough to be worth switching to torch-cuda
+## Quick Usage
 
-    - pip uninstall torch
+### Generate subtitles only (default)
+By default, this creates an `.srt` next to your video (it **does not** embed unless you ask for it):
+```bash
+auto_subtitle_plus video_name.*
+```
+This produces `video_name.srt`.
 
-    - pip cache purge
-    
-    - pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu116
+### Generate and embed subtitles into video
+```bash
+auto_subtitle_plus video.mp4 --output-video
+```
+Outputs `video_subtitled.mp4`.
 
-    or for python 3.11
+### Translate subtitles to another language
+```bash
+auto_subtitle_plus video.mp4 --translate-to fr --output-srt
+```
 
-    - pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-    
-    Having a decent gpu can drammatically increase the performance
-    
-![image](https://user-images.githubusercontent.com/19196549/221421292-fc09b38e-c3aa-46e3-8684-e46c1e4cc691.png)
-	
+### Keep original language (no translation)
+```bash
+auto_subtitle_plus video.mp4 --translate-off --output-srt
+```
 
-## Options
+---
 
-    -h, --help            show this help message and exit
-    --model {tiny.en,tiny,base.en,base,small.en,small,medium.en,medium,large-v1,large-v2,large}
-                          name of the Whisper model to use (default: small)
-    --output-dir OUTPUT_DIR, -o OUTPUT_DIR
-                          directory to save the outputs (default: .)
-    --output-srt, -s      output the .srt file in the output directory (default: False)
-    --output-audio, -a    output the audio extracted (default: False)
-    --output-video, -v    generate video with embedded subtitles (default: False)
-    --enhance-consistency
-                          use the previous output as input to the next window to improve consistency (may stuck in a
-                          failure loop) (default: False)
-    --extract-workers EXTRACT_WORKERS
-                          number of workers to extract audio (only useful when there are multiple videos) (default: 3)
-    --verbose             print out the progress and debug messages (default: False)
-    --task {transcribe,translate}
-                          whether to perform X->X speech recognition ('transcribe') or X->English translation
-                          ('translate') (default: transcribe)
-    --language {af,am,ar,as,az,ba,be,bg,bn,bo,br,bs,ca,cs,cy,da,de,el,en,es,et,eu,fa,fi,fo,fr,gl,gu,ha,haw,he,hi,hr,ht,hu,hy,id,is,it,ja,jw,ka,kk,km,kn,ko,la,lb,ln,lo,lt,lv,mg,mi,mk,ml,mn,mr,ms,mt,my,ne,nl,nn,no,oc,pa,pl, ps,pt,ro,ru,sa,sd,si,sk,sl,sn,so,sq,sr,su,sv,sw,ta,te,tg,th,tk,tl,tr,tt,uk,ur,uz,vi,yi,yo,zh,Afrikaans,Albanian,Amharic,Arabic,Armenian,Assamese,Azerbaijani,Bashkir,Basque,Belarusian,Bengali,Bosnian,Breton,Bulgarian, Burmese,Castilian,Catalan,Chinese,Croatian,Czech,Danish,Dutch,English,Estonian,Faroese,Finnish,Flemish,French,Galician,Georgian,German,Greek,Gujarati,Haitian,Haitian Creole,Hausa,Hawaiian,Hebrew,Hindi,Hungarian,  Icelandic,Indonesian,Italian,Japanese,Javanese,Kannada,Kazakh,Khmer,Korean,Lao,Latin,Latvian,Letzeburgesch,Lingala,Lithuanian,Luxembourgish,Macedonian,Malagasy,Malay,Malayalam,Maltese,Maori,Marathi,Moldavian,Moldovan, Mongolian,Myanmar,Nepali,Norwegian,Nynorsk,Occitan,Panjabi,Pashto,Persian,Polish,Portuguese,Punjabi,Pushto,Romanian,Russian,Sanskrit,Serbian,Shona,Sindhi,Sinhala,Sinhalese,Slovak,Slovenian,Somali,Spanish,Sundanese,   Swahili,Swedish,Tagalog,Tajik,Tamil,Tatar,Telugu,Thai,Tibetan,Turkish,Turkmen,Ukrainian,Urdu,Uzbek,Valencian,Vietnamese,Welsh,Yiddish,Yoruba}
-                          language spoken in the audio, specify None to perform language detection (default: None)
-    --device DEVICE       device to use for PyTorch inference (default: cuda)
+## Batch Processing Examples
 
+### Process all MP4 files in the current directory (SRT only)
+```bash
+auto_subtitle_plus *.mp4 --output-srt
+```
 
-## Usage
+### Process multiple formats in one go
+```bash
+auto_subtitle_plus *.mp4 *.mkv *.mov --output-srt
+```
 
-The following command will generate a `subtitled/video.mp4` file contained the input video with overlayed subtitles.
+### Embed subtitles for multiple files
+```bash
+auto_subtitle_plus *.mp4 --output-video
+```
+Creates `*_subtitled.mp4` for each input that produced subtitles.
 
-    auto_subtitle_plus /path/to/video.mp4 --output-video -o subtitled/
+### Translate all videos to Turkish and save SRT
+```bash
+auto_subtitle_plus *.mp4 --translate-to tr --output-srt
+```
 
-Convert all `mp4` videos in the current directory to `.srt` subtitles and store it in the current directory
+### (Linux/macOS) Recurse into subfolders (Bash)
+```bash
+shopt -s globstar nullglob
+auto_subtitle_plus **/*.mp4 --output-srt
+```
 
-    auto_subtitle_plus *.mp4 --output-srt
+### (Windows PowerShell) Recurse into subfolders
+```powershell
+Get-ChildItem -Recurse -Include *.mp4,*.mkv,*.mov | ForEach-Object {
+  auto_subtitle_plus $_.FullName --output-srt
+}
+```
 
----------------------- Recommended----------------
+---
 
-The following command will only generate an `.srt` file next to your video
+## CPU/GPU & Performance
 
-    auto_subtitle_plus.exe 'video.avi' --model medium --output-srt
+### Force CPU
+```bash
+auto_subtitle_plus video.mp4 --device cpu
+```
 
---------------------------------------------------
+### Use GPU (CUDA)
+```bash
+auto_subtitle_plus video.mp4 --device cuda
+```
+> Ensure your PyTorch installation has CUDA support. If CUDA is unavailable, the tool falls back to CPU.
 
-The default setting (which selects the `small` model) works well for transcribing English and Spanish to a certain extent.
+### Tune parallelism and throughput
+- **Audio extraction workers** (CPU processes): `--extract-workers 4`
+- **Translation batch size**: `--batch-size 20`
+- **Translation threads**: `--max-workers 8`
 
---------------- NEW ------------------------------------------------------
+Example (batch SRT with tuned settings):
+```bash
+auto_subtitle_plus *.mp4 --output-srt --batch-size 20 --max-workers 8 --extract-workers 4
+```
 
-You can use the --language parameter to force the output for the following languages:
+### Larger models on GPU
+```bash
+auto_subtitle_plus *.mp4 --model large --device cuda --output-srt
+```
 
-Afrikaans
-	- Albanian
-	- Amharic
-	- Arabic
-	- Armenian
-	- Assamese
-	- Azerbaijani
-	- Bashkir
-	- Basque
-	- Belarusian
-	- Bengali
-	- Bosnian
-	- Breton
-	- Bulgarian
-	- Burmese
-	- Castilian
-	- Catalan
-	- Chinese
-	- Croatian
-	- Czech
-	- Danish
-	- Dutch
-	- English
-	- Estonian
-	- Faroese
-	- Finnish
-	- Flemish
-	- French
-	- Galician
-	- Georgian
-	- German
-	- Greek
-	- Gujarati
-	- Haitian
-	- Haitian Creole
-	- Hausa
-	- Hawaiian
-	- Hebrew
-	- Hindi
-	- Hungarian
-	- Icelandic
-	- Indonesian
-	- Italian
-	- Japanese
-	- Javanese
-	- Kannada
-	- Kazakh
-	- Khmer
-	- Korean
-	- Lao
-	- Latin
-	- Latvian
-	- Letzeburgesch
-	- Lingala
-	- Lithuanian
-	- Luxembourgish
-	- Macedonian
-	- Malagasy
-	- Malay
-	- Malayalam
-	- Maltese
-	- Maori
-	- Marathi
-	- Moldavian
-	- Moldovan
-	- Mongolian
-	- Myanmar
-	- Nepali
-	- Norwegian
-	- Nynorsk
-	- Occitan
-	- Panjabi
-	- Pashto
-	- Persian
-	- Polish
-	- Portuguese
-	- Punjabi
-	- Pushto
-	- Romanian
-	- Russian
-	- Sanskrit
-	- Serbian
-	- Shona
-	- Sindhi
-	- Sinhala
-	- Sinhalese
-	- Slovak
-	- Slovenian
-	- Somali
-	- Spanish
-	- Sundanese
-	- Swahili
-	- Swedish
-	- Tagalog
-	- Tajik
-	- Tamil
-	- Tatar
-	- Telugu
-	- Thai
-	- Tibetan
-	- Turkish
-	- Turkmen
-	- Ukrainian
-	- Urdu
-	- Uzbek
-	- Valencian
-	- Vietnamese
-	- Welsh
-	- Yiddish
-	- Yorubaa
+---
 
+## Show All Options
+```bash
+auto_subtitle_plus --help
+```
 
-Further details on accuracy and models can be obtained here: https://github.com/openai/whisper#available-models-and-languages
---------------------------------------------------------------------------
-
-You can optionally use a bigger model for better results (especially with other languages). The available models are `tiny`, `tiny.en`, `base`, `base.en`, `small`, `small.en`, `medium`, `medium.en`, `large`.
-
-    auto_subtitle_plus.exe /path/to/video.mp4 --model medium 
-
-Adding `--task translate` will translate the subtitles into English:
-
-    auto_subtitle_plus.exe /path/to/video.mp4 --task translate
-
-Run the following to view all available options:
-
-    auto_subtitle_plus.exe --help
+---
 
 ## License
+MIT. See [LICENSE](LICENSE).
 
-This script is open-source and licensed under the MIT License. For more details, check the [LICENSE](LICENSE) file.
+> This fork acknowledges and builds upon the original work by Sectumsempra82 and its README (provided as README_org.md).
