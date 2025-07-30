@@ -27,11 +27,12 @@ veya hem orijinal hem de çevrilmiş altyazıyı (çift dil; örneğin türkçe-
 ## Installation
 Supports Python **3.7 – 3.11**.
 
-```bash
-pip install -r requirements.txt
-```
+<div style="color:blue; padding: 8px 10px; border-left: 4px solid #1f6feb; background:#f0f8ff;">
+<strong>Quick install (from GitHub):</strong><br/>
+<pre style="margin: 6px 0 0;"><code>pip install git+https://github.com/seyithokelek/auto-subtitle-plus</code></pre>
+</div>
 
-Also install **ffmpeg**:
+Also install <strong>ffmpeg</strong> (if not already installed):
 
 ```bash
 # Ubuntu/Debian
